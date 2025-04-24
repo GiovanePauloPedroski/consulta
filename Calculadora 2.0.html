@@ -1,0 +1,243 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Calculadora Financeira</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background-color: #f4f4f9;
+        }
+        .container {
+            max-width: 800px;
+            margin: auto;
+            padding: 20px;
+            background-color: white;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+        h1 {
+            text-align: center;
+            color: #4CAF50;
+        }
+        label {
+            display: block;
+            margin-top: 1px;
+        }
+        input, button {
+            width: 100%;
+            padding: 10px;
+            margin-top: 1px;
+            font-size: 18px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+        }
+        button {
+            background-color: #4CAF50;
+            color: white;
+            cursor: pointer;
+        }
+        button:hover {
+            background-color: #45a049;
+        }
+        .result {
+            margin-top: 1px;
+            font-size: 18px;
+            padding: 10px;
+            background-color: #e2e2e2;
+            border-radius: 4px;
+        }
+        .taxa-extra {
+            margin-top: 1px;
+            font-size: 18px;
+            padding: 10px;
+            background-color: #f2f2f2;
+            border-radius: 4px;
+            font-weight: bold;
+        }
+
+        .checkbox-container {
+            display: flex;
+            align-items: center;
+            margin-top: 1px;
+        }
+
+        #incluirTaxaExtra {
+            margin-right: 1px;
+            transform: scale(1.5);
+        }
+
+        .checkbox-container label {
+            margin-top: 0;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h1>Microcrédito Adestec - Obra Padre Pio</h1>
+
+    <!-- Campo de data inicial (data atual) -->
+    <label for="dataInicial">Data Inicial (Hoje):</label>
+    <input type="date" id="dataInicial" disabled>
+
+    <!-- Campo de data final -->
+    <label for="dataFinal">Data Início Pagamento:</label>
+    <input type="date" id="dataFinal">
+
+    <!-- Resultado do cálculo de datas -->
+    <label for="resultadoData">Cálculo de Prazo de Pagamento:</label>
+    <input type="text" id="resultadoData" readonly>
+
+    <!-- Outros campos da calculadora -->
+    <label for="valor">Valor Financiado (R$):</label>
+    <input type="text" id="valor" placeholder="Digite o valor financiado" required />
+
+    <label for="taxa">Taxa de Juros Mensal (%):</label>
+    <input type="number" id="taxa" step="0.1" placeholder="Digite a taxa de juros" required>
+
+    <label for="parcelas">Número de Parcelas:</label>
+    <input type="number" id="parcelas" placeholder="Digite o número de parcelas" required>
+
+    <label for="carencia">Prazo Pagamento:</label>
+    <input type="number" id="carencia" placeholder="Digite os meses de carência" required>
+
+    <div class="checkbox-container">
+        <input type="checkbox" id="incluirTaxaExtra">
+        <label for="incluirTaxaExtra">Incluir Taxa Extra de Financiamento</label>
+    </div>
+
+    <button onclick="calcular()">Calcular</button>
+
+    <div class="taxa-extra" id="taxaExtraValor">Taxa Extra: R$ 0,00</div>
+
+    <div class="result" id="resultado"></div>
+</div>
+
+<script>
+    // Função para formatar valores como moeda no formato brasileiro (R$ 1.234,56)
+    function formatarMoeda(valor) {
+        return valor.toLocaleString('pt-BR', {
+            style: 'currency',
+            currency: 'BRL',
+            minimumFractionDigits: 2,
+            maximumFractionDigits: 2
+        });
+    }
+
+    // Função para formatar o valor no campo de entrada como moeda
+    function formatarValor() {
+        let valorCampo = document.getElementById('valor');
+        let valor = valorCampo.value.replace(/\D/g, ''); // Remove qualquer caractere não numérico
+        if (valor.length > 0) {
+            valor = (parseInt(valor) / 100).toFixed(2); // Converte para formato decimal
+            valorCampo.value = formatarMoeda(parseFloat(valor));
+        }
+        calcular(); // Chama a função de cálculo após formatar o valor
+    }
+
+    // Função para preencher a data inicial com a data de hoje
+    function preencherDataInicial() {
+        let hoje = new Date();
+        let dataInicial = document.getElementById('dataInicial');
+        let ano = hoje.getFullYear();
+        let mes = String(hoje.getMonth() + 1).padStart(2, '0');
+        let dia = String(hoje.getDate()).padStart(2, '0');
+        dataInicial.value = `${ano}-${mes}-${dia}`;
+    }
+
+    // Função para calcular a diferença entre as datas
+    function calcularData() {
+        let dataInicial = new Date(document.getElementById('dataInicial').value);  // Data atual
+        let dataFinal = new Date(document.getElementById('dataFinal').value);
+
+        if (!document.getElementById('dataFinal').value) {
+            return;  // Não faz o cálculo se a data final não foi informada
+        }
+
+        // Calculando a diferença em dias
+        let diferenca = Math.floor((dataFinal - dataInicial) / (1000 * 60 * 60 * 24)); // diferença em dias
+
+        let resultado;
+        if (diferenca < 44) {
+            resultado = 0;
+        } else if (diferenca >= 45 && diferenca <= 74) {
+            resultado = 1;
+        } else if (diferenca >= 75 && diferenca <= 105) {
+            resultado = 2;
+        } else if (diferenca >= 106 && diferenca <= 136) {
+            resultado = 3;
+        } else {
+            resultado = "Valor fora da faixa (deve ser entre 44 e 136 dias)";
+        }
+
+        // Exibindo o resultado da diferença entre as datas
+        document.getElementById('resultadoData').value = resultado;
+
+        // Preenchendo o campo de carência com o resultado
+        document.getElementById('carencia').value = resultado;
+    }
+
+    // Função para calcular o financiamento
+    function calcular() {
+        let valorCampo = document.getElementById('valor');
+        let valor = parseFloat(valorCampo.value.replace(/\D/g, '') / 100); // Valor sem formatação de moeda
+        let taxa = parseFloat(document.getElementById('taxa').value) / 100;
+        let parcelas = parseInt(document.getElementById('parcelas').value);
+        let carencia = parseInt(document.getElementById('carencia').value);
+        let incluirTaxaExtra = document.getElementById('incluirTaxaExtra').checked;
+
+        if (isNaN(valor) || isNaN(taxa) || isNaN(parcelas) || isNaN(carencia) || valor <= 0 || taxa <= 0 || parcelas <= 0 || carencia < 0) {
+            document.getElementById('resultado').innerHTML = "Por favor, insira valores válidos em todos os campos.";
+            return;
+        }
+
+        let taxaExtra;
+        if (valor <= 20000) {
+            taxaExtra = valor * 0.03; // 3% até 20.000
+        } else {
+            taxaExtra = 600; // Fixo em 600 acima de 20.000
+        }
+
+        document.getElementById('taxaExtraValor').innerHTML = `Taxa Extra: ${formatarMoeda(taxaExtra)}`;
+
+        let valorComJurosCarencia = valor * Math.pow(1 + taxa, carencia);
+        let valorFinal = valorComJurosCarencia + (incluirTaxaExtra ? taxaExtra : 0);
+
+        let parcelaFixa = valorFinal * (taxa * Math.pow(1 + taxa, parcelas)) / (Math.pow(1 + taxa, parcelas) - 1);
+
+        let totalPago = parcelaFixa * parcelas;
+        let totalDeJuros = totalPago - valor;
+        let totalaPagar = parcelas * parcelaFixa;
+
+        document.getElementById('resultado').innerHTML = `
+            <strong>Resultado:</strong><br>
+            <strong>Valor da Parcela Fixa: ${formatarMoeda(parcelaFixa)}</strong><br>
+            Valor Total Financiado: ${formatarMoeda(valor)}<br>
+            Valor Total Após Juros de Prazo Pagamento : ${formatarMoeda(valorComJurosCarencia)}<br>
+            Valor Total com Taxa Extra: ${formatarMoeda(valorFinal)}<br>
+            Total de Parcelas: ${parcelas}<br>
+            Total a Pagar: ${formatarMoeda(totalaPagar)}<br>
+            Total de Juros: ${formatarMoeda(totalDeJuros)}
+        `;
+    }
+
+    // Chamar a função para preencher a data inicial ao carregar a página
+    window.onload = function() {
+        preencherDataInicial();
+    };
+
+    // Recalcular automaticamente ao alterar os valores dos campos relevantes
+    document.getElementById('valor').addEventListener('input', formatarValor);
+    document.getElementById('taxa').addEventListener('input', calcular);
+    document.getElementById('parcelas').addEventListener('input', calcular);
+    document.getElementById('carencia').addEventListener('input', calcular);
+    document.getElementById('incluirTaxaExtra').addEventListener('change', calcular);
+    document.getElementById('dataFinal').addEventListener('change', calcularData); // Recalcular a data
+</script>
+
+</body>
+</html>
