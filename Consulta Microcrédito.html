@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Consulta Microcrédito</title>
+  <style>
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      background: linear-gradient(to right, #c8e6c9, #a5d6a7);
+      padding: 2rem;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      min-height: 100vh;
+      margin: 0;
+    }
+
+    h1 {
+      margin-bottom: 2rem;
+      color: #333;
+    }
+
+    .search-container {
+      display: flex;
+      flex-direction: column;
+      gap: 1rem;
+      width: 100%;
+      max-width: 600px;
+    }
+
+    .search-box {
+      background-color: #fff;
+      padding: 1rem;
+      border-radius: 8px;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+      display: flex;
+      flex-direction: column;
+    }
+
+    .search-box input {
+      padding: 10px;
+      font-size: 1rem;
+      margin-bottom: 10px;
+      border: 1px solid #ccc;
+      border-radius: 5px;
+    }
+
+    .search-box button {
+      padding: 8px;
+      background-color: #28a745;
+      color: white;
+      font-size: 1rem;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+    }
+
+    .search-box button:hover {
+      background-color: #218838;
+    }
+
+    .result {
+      margin-top: 10px;
+      font-weight: bold;
+      color: #333;
+      white-space: pre-wrap;
+    }
+
+    .status-fail {
+      font-weight: bold;
+      color: red;
+    }
+
+    #loading {
+      display: none;
+      color: #28a745;
+      font-weight: bold;
+    }
+  </style>
+</head>
+<body>
+  <h1>Consulta Microcrédito</h1>
+  <div class="search-container">
+    <div class="search-box">
+      <input type="date" id="dataInicial" placeholder="Data Inicial">
+      <input type="date" id="dataFinal" placeholder="Data Final">
+      <input type="text" id="nome" placeholder="Nome (Parcial)">
+      <button onclick="searchData()">Pesquisar</button>
+      <div id="result1" class="result" aria-live="polite"></div>
+      <div id="loading">Carregando dados...</div>
+    </div>
+  </div>
+
+  <script>
+    let bancoData = [];
+
+    async function loadCSV(url) {
+      try {
+        const response = await fetch(url);
+        const reader = response.body.getReader();
+        const decoder = new TextDecoder('utf-8');
+        let result = '';
+        while (true) {
+          const { done, value } = await reader.read();
+          if (done) break;
+          result += decoder.decode(value, { stream: true });
+        }
+        result += decoder.decode(); // final
+
+        const lines = result.split('\n').map(line => line.trim()).filter(Boolean);
+        return lines.map(line => line.split(';').map(cell => cell.trim()));
+      } catch (error) {
+        document.getElementById('result1').innerHTML = `<span class="status-fail">${error.message}</span>`;
+        return [];
+      }
+    }
+
+    async function initializeData() {
+      bancoData = await loadCSV('https://raw.githubusercontent.com/GiovanePauloPedroski/consulta/main/BancoMICRO.csv');
+    }
+
+    function parseDateBrToISO(dateStr) {
+      const [day, month, year] = dateStr.split('/');
+      return new Date(`${year}-${month}-${day}`);
+    }
+
+    function formatValor(valor) {
+      return valor
+        .toFixed(2)
+        .replace('.', ',')
+        .replace(/\B(?=(\d{3})+(?!\d))/g, '.');
+    }
+
+    function normalizeString(str) {
+      return str.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase();
+    }
+
+    async function searchData() {
+      const resultContainer = document.getElementById('result1');
+      resultContainer.innerHTML = '';
+
+      if (bancoData.length === 0) {
+        document.getElementById('loading').style.display = 'block';
+        await initializeData();
+        document.getElementById('loading').style.display = 'none';
+      }
+
+      const dataIni = document.getElementById('dataInicial').value;
+      const dataFim = document.getElementById('dataFinal').value;
+      const nomePesquisa = document.getElementById('nome').value.trim().toLowerCase();
+
+      let results = [];
+
+      if (nomePesquisa) {
+        results = bancoData.filter((row, index) => {
+          if (index === 0) return false;
+          const nome = row[0];
+          return normalizeString(nome).includes(normalizeString(nomePesquisa));
+        });
+      } else {
+        if (!dataIni || !dataFim) {
+          resultContainer.innerHTML = `<span class="status-fail">Informe a data inicial e final.</span>`;
+          return;
+        }
+
+        const iniDate = new Date(dataIni);
+        const fimDate = new Date(dataFim);
+
+        results = bancoData.filter((row, index) => {
+          if (index === 0) return false;
+          const rawDate = row[2]?.replaceAll('"', '').trim();
+          if (!rawDate.match(/\d{2}\/\d{2}\/\d{4}/)) return false;
+          const data = parseDateBrToISO(rawDate);
+          return data >= iniDate && data <= fimDate;
+        });
+      }
+
+      if (results.length === 0) {
+        resultContainer.innerHTML = `<span class="status-fail">Nenhum dado encontrado.</span>`;
+        return;
+      }
+
+      let output = '';
+      let total = 0;
+
+      results.forEach(row => {
+        const nome = row[0];
+        const codigo = row[1];
+        const valorRaw = row[3]?.replace(/\./g, '').replace(',', '.').replaceAll('"', '') || '0';
+        const valor = parseFloat(valorRaw);
+        total += valor;
+        const valorFormatado = formatValor(valor);
+        output += `${codigo} - ${nome} - R$ ${valorFormatado}\n`;
+      });
+
+      output += `---\nTotal de Contratos: ${results.length}\nValor Total Emprestado: R$ ${formatValor(total)}`;
+      resultContainer.innerHTML = output;
+    }
+
+    initializeData();
+  </script>
+</body>
+</html>
