@@ -1,0 +1,268 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Consulta de Carnês</title>
+  <style>
+    :root {
+      --primary: #7f8ff4;
+      --primary-light: #92caff;
+      --background: #f2f5f9;
+      --text: #2c3e50;
+      --box: rgba(255, 255, 255, 0.9);
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      background: linear-gradient(to right, var(--background), #e3ebf6);
+      padding: 2rem;
+      margin: 0;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      min-height: 100vh;
+      color: var(--text);
+      animation: fadeIn 0.5s ease-in;
+    }
+
+    h1 {
+      margin-bottom: 2rem;
+      color: #34495e;
+      font-size: 2.5rem;
+      font-weight: 600;
+      text-align: center;
+    }
+
+    .search-container {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 1.5rem;
+      width: 100%;
+      max-width: 600px;
+    }
+
+    .search-box {
+      background: var(--box);
+      backdrop-filter: blur(10px);
+      padding: 1.5rem;
+      border-radius: 1rem;
+      box-shadow: 0 10px 25px rgba(0,0,0,0.08);
+      display: flex;
+      flex-direction: column;
+      transition: transform 0.2s;
+      animation: fadeInUp 0.4s ease-out;
+    }
+
+    .search-box:hover {
+      transform: scale(1.01);
+    }
+
+    .search-box input {
+      padding: 12px;
+      font-size: 1rem;
+      margin-bottom: 1rem;
+      border: 1px solid #dce3ec;
+      border-radius: 8px;
+      transition: border 0.2s;
+    }
+
+    .search-box input:focus {
+      border-color: var(--primary);
+      outline: none;
+    }
+
+    .search-box button {
+      padding: 10px 0;
+      background: linear-gradient(135deg, var(--primary), var(--primary-light));
+      color: white;
+      font-size: 1rem;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: background 0.2s ease;
+    }
+
+    .search-box button:hover {
+      background: linear-gradient(135deg, #7080f0, #80bcff);
+    }
+
+    .result {
+      margin-top: 12px;
+      font-weight: 500;
+      color: #2d3436;
+      line-height: 1.6;
+    }
+
+    .status-pago {
+      background-color: #d4edda; /* Verde claro */
+      color: green;
+      font-weight: bold;
+    }
+
+    .status-pendente {
+      background-color: #f8d7da; /* Vermelho claro */
+      color: red;
+      font-weight: bold;
+    }
+
+    @media (max-width: 480px) {
+      body {
+        padding: 1rem;
+      }
+
+      .search-box {
+        padding: 1rem;
+      }
+
+      h1 {
+        font-size: 2rem;
+      }
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; }
+      to { opacity: 1; }
+    }
+
+    @keyframes fadeInUp {
+      from { opacity: 0; transform: translateY(20px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+  </style>
+</head>
+<body>
+  <h1>Consulta de Carnês</h1>
+  <div class="search-container">
+    <div class="search-box">
+      <input type="text" id="input1" placeholder="Digite o número para pesquisar..." onkeydown="handleKey(event, 'input1', 'result1')">
+      <button onclick="searchData('input1', 'result1')">Pesquisar</button>
+      <div id="result1" class="result"></div>
+    </div>
+    <div class="search-box">
+      <input type="text" id="input2" placeholder="Digite o número para pesquisar..." onkeydown="handleKey(event, 'input2', 'result2')">
+      <button onclick="searchData('input2', 'result2')">Pesquisar</button>
+      <div id="result2" class="result"></div>
+    </div>
+    <div class="search-box">
+      <input type="text" id="input3" placeholder="Digite o número para pesquisar..." onkeydown="handleKey(event, 'input3', 'result3')">
+      <button onclick="searchData('input3', 'result3')">Pesquisar</button>
+      <div id="result3" class="result"></div>
+    </div>
+    <div class="search-box">
+      <input type="text" id="input4" placeholder="Digite o número para pesquisar..." onkeydown="handleKey(event, 'input4', 'result4')">
+      <button onclick="searchData('input4', 'result4')">Pesquisar</button>
+      <div id="result4" class="result"></div>
+    </div>
+    <div class="search-box">
+      <input type="text" id="input5" placeholder="Digite o número para pesquisar..." onkeydown="handleKey(event, 'input5', 'result5')">
+      <button onclick="searchData('input5', 'result5')">Pesquisar</button>
+      <div id="result5" class="result"></div>
+    </div>
+  </div>
+
+  <script>
+    let bancoData = [];
+    let detalhesData = [];
+    let bancoParcelaData = [];
+    let bancoPagoData = [];
+
+    function loadCSV() {
+      const bancoPath = 'https://raw.githubusercontent.com/GiovanePauloPedroski/consulta/main/BancoCARNE.csv';
+      const detalhesPath = 'https://raw.githubusercontent.com/GiovanePauloPedroski/consulta/main/BancoCAD.csv';
+      const parcelaPath = 'https://raw.githubusercontent.com/GiovanePauloPedroski/consulta/main/BancoPARCELA.csv';
+      const pagoPath = 'https://raw.githubusercontent.com/GiovanePauloPedroski/consulta/main/BancoPAGO.csv';
+
+      Promise.all([
+        fetch(bancoPath).then(res => res.text()),
+        fetch(detalhesPath).then(res => res.text()),
+        fetch(parcelaPath).then(res => res.text()),
+        fetch(pagoPath).then(res => res.text())
+      ])
+      .then(([bancoCSV, detalhesCSV, parcelaCSV, pagoCSV]) => {
+        bancoData = parseCSV(bancoCSV);
+        detalhesData = parseCSV(detalhesCSV);
+        bancoParcelaData = parseCSV(parcelaCSV);
+        bancoPagoData = parseCSV(pagoCSV);
+      })
+      .catch(error => {
+        console.error('Erro ao carregar os arquivos:', error);
+        alert('Erro ao carregar os arquivos CSV.');
+      });
+    }
+
+    function parseCSV(csvData) {
+      const rows = csvData.split('\n').map(row => row.trim()).filter(row => row);
+      return rows.map(row => row.split(';').map(cell => cell.trim()));
+    }
+
+    function searchData(inputId, resultId) {
+      const query = document.getElementById(inputId).value.trim();
+      const resultBox = document.getElementById(resultId);
+      resultBox.innerHTML = '';
+
+      if (query === '') {
+        resultBox.innerHTML = 'Digite um número válido.';
+        return;
+      }
+
+      const queryNumber = Number(query);
+      let resultHTML = '';
+      let found = false;
+
+      const foundRowBanco = bancoData.find(row => row.some(cell => Number(cell) === queryNumber));
+      if (foundRowBanco) {
+        const chave = foundRowBanco[0];
+        const detalhe = detalhesData.find(row => row[0] === chave);
+        
+        resultHTML += `<strong>Carnê:</strong> ${chave}<br>`;
+        if (detalhe && detalhe.length >= 4) {
+          resultHTML += `
+            <strong>Nome:</strong> ${detalhe[1]}<br>
+            <strong>Contato:</strong> ${detalhe[2]}<br>
+            <strong>Contato:</strong> ${detalhe[3]}<br>
+          `;
+        } else {
+          resultHTML += "Detalhes não encontrados no segundo banco.<br>";
+        }
+
+        const foundRowParcela = bancoParcelaData.find(row => row.some(cell => Number(cell) === queryNumber));
+        if (foundRowParcela) {
+          const parcelaValue = foundRowParcela[0];
+          resultHTML += `<strong>Parcelamento encontrado:</strong> ${parcelaValue}<br>`;
+
+          const foundRowPago = bancoPagoData.find(row => row.some(cell => cell === parcelaValue));
+          if (foundRowPago) {
+            resultHTML = `<div class="status-pago">${resultHTML}</div>`;
+          } else {
+            resultHTML = `<div class="status-pendente">${resultHTML}</div>`;
+          }
+          
+        } else {
+          resultHTML += "Nenhum registro encontrado no BancoPARCELA.<br>";
+        }
+
+        found = true;
+      }
+
+      if (!found) {
+        resultHTML = 'Nenhum resultado encontrado nos bancos.';
+      }
+
+      resultBox.innerHTML = resultHTML;
+    }
+
+    function handleKey(event, inputId, resultId) {
+      if (event.key === "Enter") {
+        searchData(inputId, resultId);
+      }
+    }
+
+    window.onload = loadCSV;
+  </script>
+</body>
+</html>
