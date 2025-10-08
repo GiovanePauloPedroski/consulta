@@ -7,8 +7,8 @@
     <style>
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: linear-gradient(135deg, #e0f2f7, #b2ebf2);
-            padding: 2.5rem; /* Ligeiro aumento no padding do body */
+            background: linear-gradient(135deg, #e8f5e9, #c8e6c9); /* Verde claro no fundo */
+            padding: 2.5rem;
             display: flex;
             flex-direction: column;
             align-items: center;
@@ -18,9 +18,9 @@
         }
 
         h1 {
-            margin-bottom: 2rem; /* Ligeiro aumento na margem inferior do título */
-            color: #0277bd;
-            font-size: 2.2rem; /* Ligeiro aumento no tamanho da fonte do título */
+            margin-bottom: 2rem;
+            color: #2e7d32; /* Verde principal */
+            font-size: 2.2rem;
             text-align: center;
             letter-spacing: 0.5px;
         }
@@ -28,41 +28,41 @@
         .search-container {
             display: flex;
             flex-direction: column;
-            gap: 1.2rem; /* Ligeiro aumento no gap entre os elementos */
+            gap: 1.2rem;
             width: 90%;
-            max-width: 550px; /* Ligeiro aumento na largura máxima */
+            max-width: 550px;
         }
 
         .search-box {
-            background-color: #eceff1;
-            padding: 1.2rem; /* Ligeiro aumento no padding da caixa de busca */
+            background-color: #f1f8e9; /* Verde muito claro */
+            padding: 1.2rem;
             border-radius: 10px;
-            box-shadow: 0 5px 10px rgba(0,0,0,0.1); /* Ligeiro aumento na sombra */
+            box-shadow: 0 5px 10px rgba(0,0,0,0.1);
             display: flex;
             flex-direction: column;
-            gap: 0.85rem; /* Ligeiro aumento no gap dentro da caixa de busca */
+            gap: 0.85rem;
         }
 
         .search-box input {
-            padding: 9px 12px; /* Ligeiro aumento no padding do input */
-            font-size: 1rem; /* Ligeiro aumento no tamanho da fonte do input */
-            margin-bottom: 0.3rem; /* Ligeiro aumento na margem inferior do input */
-            border: 1px solid #81d4fa;
+            padding: 9px 12px;
+            font-size: 1rem;
+            margin-bottom: 0.3rem;
+            border: 1px solid #81c784; /* Verde claro */
             border-radius: 6px;
             transition: border-color 0.3s ease;
         }
 
         .search-box input:focus {
             outline: none;
-            border-color: #0277bd;
-            box-shadow: 0 0 7px rgba(2, 119, 189, 0.3);
+            border-color: #2e7d32; /* Verde principal */
+            box-shadow: 0 0 7px rgba(46, 125, 50, 0.3);
         }
 
         .search-box button {
-            padding: 9px 16px; /* Ligeiro aumento no padding do botão */
-            background-color: #0277bd;
+            padding: 9px 16px;
+            background-color: #2e7d32; /* Verde principal */
             color: white;
-            font-size: 1rem; /* Ligeiro aumento no tamanho da fonte do botão */
+            font-size: 1rem;
             border: none;
             border-radius: 6px;
             cursor: pointer;
@@ -70,37 +70,37 @@
         }
 
         .search-box button:hover {
-            background-color: #01579b;
+            background-color: #1b5e20; /* Verde escuro */
         }
 
         .result {
-            margin-top: 1.2rem; /* Ligeiro aumento na margem superior do resultado */
-            font-size: 1rem; /* Ligeiro aumento no tamanho da fonte do resultado */
+            margin-top: 1.2rem;
+            font-size: 1rem;
             color: #263238;
             white-space: pre-wrap;
-            line-height: 1.5; /* Ligeiro aumento na altura da linha */
-            border: 1px solid #81d4fa;
-            padding: 1.2rem; /* Ligeiro aumento no padding do resultado */
+            line-height: 1.5;
+            border: 1px solid #81c784; /* Verde claro */
+            padding: 1.2rem;
             border-radius: 8px;
-            background-color: #e0f7fa;
+            background-color: #e8f5e9; /* Fundo verde claro */
             box-shadow: 0 2px 5px rgba(0,0,0,0.05);
         }
 
         .result strong {
-            color: #0277bd;
-            font-size: 1.1rem; /* Ligeiro aumento no tamanho da fonte do negrito */
+            color: #2e7d32; /* Verde principal */
+            font-size: 1.1rem;
         }
 
         .parcela-linha {
-            padding: 5px 10px; /* Ligeiro aumento no padding da linha da parcela */
-            margin-bottom: 1.5px; /* Ligeiro aumento na margem inferior */
+            padding: 5px 10px;
+            margin-bottom: 1.5px;
             border-radius: 4px;
             color: white;
-            font-size: 0.9rem; /* Ligeiro aumento na fonte das parcelas */
+            font-size: 0.9rem;
         }
 
         .linha-paga {
-            background-color: #1b5e20;
+            background-color: #1b5e20; /* Verde escuro */
         }
 
         .linha-falta-pagar {
@@ -180,7 +180,6 @@
                 const carneInfo = foundRow[12] || "Informação não disponível";
                 resultHTML += `<strong>Carnê: ${carneInfo}</strong><br><br>`;
 
-                // Verifica se carneInfo é um número e se é maior que 1000
                 if (!isNaN(parseFloat(carneInfo)) && parseFloat(carneInfo) > 1000) {
                     if (foundRow.length > 12) {
                         const primeiraParcela = foundRow[0];
